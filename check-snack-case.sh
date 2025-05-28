@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
 # Function to check if a string is snake_case
 is_snake_case() {
   [[ "$1" =~ ^[a-z]+(_[a-z0-9]+)*$ ]]
@@ -11,8 +9,12 @@ is_snake_case() {
 is_list_snake_case() {
   local json_array="$1"
   local all_valid=true
+  local items=()
 
-  mapfile -t items < <(echo "$json_array" | jq -r '.[]')
+  # Read each item using jq and a while-loop
+  while IFS= read -r item; do
+    items+=("$item")
+  done < <(echo "$json_array" | jq -r '.[]')
 
   for item in "${items[@]}"; do
     if ! is_snake_case "$item"; then
