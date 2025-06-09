@@ -84,3 +84,6 @@ curl -s -X PUT "https://firebaseremoteconfig.googleapis.com/v1/projects/$PROJECT
   --data-binary @new_config.json | jq
 
 echo "✅ Atualização concluída."
+
+# 🧹 Clean up temporary files
+#rm -f headers.txt config.json new_config.json
