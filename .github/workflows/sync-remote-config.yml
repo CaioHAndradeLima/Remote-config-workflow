@@ -30,8 +30,6 @@ jobs:
 
           RESPONSE=$(.github/action/generate-firebase-token.sh "${FIREBASE_CLIENT_EMAIL}" "$PRIVATE_KEY_CLEAN")
 
-          echo "$RESPONSE"
-
           ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token // empty')
 
           if [[ -z "$ACCESS_TOKEN" ]]; then
@@ -42,15 +40,23 @@ jobs:
           fi
 
           echo "✅ Firebase token acquired."
-          echo "::set-output name=token::$ACCESS_TOKEN"
+          echo "token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
 
       # Step 2: GET current remote config template
-      - name: 📡 Step 2 - Fetch current remote config
-        id: fetch_template
+      - name: 📡 Step 2 - Request remote config template
+        id: get_remote_config
         run: |
-          # TODO: Use token from previous step to fetch the template via GET
-          # Save the response JSON in a variable/file
-          echo "template=FAKE_JSON" >> $GITHUB_OUTPUT
+          echo "📥 Requesting Remote Config template..."
+          chmod +x .github/action/firebase-get-request.sh
+          
+          PROJECT_ID="${FIREBASE_PROJECT_ID}"
+          ACCESS_TOKEN="${{ steps.get_token.outputs.token }}"
+          OUT_FILE=".remote_config.json"
+          
+          .github/action/firebase-get-request.sh "$PROJECT_ID" "$ACCESS_TOKEN" "$OUT_FILE"
+          
+          cat $OUT_FILE
+          echo "✅ Remote config saved to $OUT_FILE"
 
       # Step 3: Validate keys using snake_case checker
       - name: 🐍 Step 3 - Run snake_case check
