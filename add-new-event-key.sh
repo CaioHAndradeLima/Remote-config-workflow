@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Usage: ./add_string_to_param.sh <config_file> <param_name> <new_string>
+# Usage: ./add-new-event-key.sh <config_file> <param_name> <new_string>
 
 CONFIG_FILE=$1
 PARAM_KEY=$2
@@ -47,6 +47,3 @@ UPDATED_VALUE=$(jq -n \
 
 # Replace value in original config and save as new file
 jq --arg val "$UPDATED_VALUE" ".parameters[\"$PARAM_KEY\"].defaultValue.value = \$val" "$CONFIG_FILE" > "updated_$CONFIG_FILE"
-
-echo "✅ String \"$NEW_STRING\" added successfully to \"$PARAM_KEY\"."
-echo "📝 Updated config saved as: updated_$CONFIG_FILE"
