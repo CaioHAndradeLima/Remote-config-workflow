@@ -1,30 +1,31 @@
 #!/bin/bash
 
-ACCESS_TOKEN=$1
-PROJECT_ID="horariocomigo"
+PROJECT_ID=$1
+ACCESS_TOKEN=$2
+OUT_FILE=$3  # New: file to save the JSON
 
-if [[ -z "$ACCESS_TOKEN" ]]; then
-  echo "you should pass the token as first parameter: $0 <access_token>"
+if [[ -z "$ACCESS_TOKEN" || -z "$PROJECT_ID" || -z "$OUT_FILE" ]]; then
+  echo "Usage: $0 <project_id> <access_token> <output_file>"
   exit 1
 fi
 
-# Create temp files
-RESPONSE=$(mktemp)
+# Create temp file for headers
 HEADERS=$(mktemp)
 
-#requesting remote config
+# Requesting remote config
 curl -s --compressed \
   -D "$HEADERS" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Accept-Encoding: gzip" \
   "https://firebaseremoteconfig.googleapis.com/v1/projects/$PROJECT_ID/remoteConfig" \
-  -o "$RESPONSE"
+  -o "$OUT_FILE"
 
-#extract etag from header
+# Extract etag from headers
 ETAG=$(grep -i '^etag:' "$HEADERS" | awk -F': ' '{print $2}' | tr -d '\r')
 
-#add etag as a new item into json
-jq --arg etag "$ETAG" '. + {etag: $etag}' "$RESPONSE"
+# Inject etag into the saved JSON
+TMP=$(mktemp)
+jq --arg etag "$ETAG" '. + {etag: $etag}' "$OUT_FILE" > "$TMP" && mv "$TMP" "$OUT_FILE"
 
-#cleaning temp files
-rm -f "$RESPONSE" "$HEADERS"
+# Clean up
+rm -f "$HEADERS"
