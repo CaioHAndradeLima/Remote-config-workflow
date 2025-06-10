@@ -70,7 +70,8 @@ jobs:
           
           if [[ -z "$raw_json" || "$raw_json" == "null" ]]; then
             echo "❌ No value found in firebase.defaultValue.value"
-            echo "has_violation=false" >> $GITHUB_OUTPUT
+            echo "has_firebase_violation=false" >> $GITHUB_OUTPUT
+            echo "firebase_violation_message=No value found in firebase.defaultValue.value" >> $GITHUB_OUTPUT
             exit 0
           fi
           
@@ -78,7 +79,8 @@ jobs:
           
           if [[ -z "$parsed" || "$parsed" == "null" ]]; then
             echo "❌ Failed to parse firebase.defaultValue.value as JSON"
-            echo "has_violation=false" >> $GITHUB_OUTPUT
+            echo "has_firebase_violation=false" >> $GITHUB_OUTPUT
+            echo "firebase_violation_message=Failed to parse firebase.defaultValue.value as JSON" >> $GITHUB_OUTPUT
             exit 0
           fi
           
@@ -86,18 +88,31 @@ jobs:
           
           if [[ "$allowed_keys" == "null" ]]; then
             echo "❌ 'allowed_event_keys' field not found in firebase"
-            echo "has_violation=false" >> $GITHUB_OUTPUT
+            echo "has_firebase_violation=false" >> $GITHUB_OUTPUT
+            echo "firebase_violation_message=field allowed_event_keys not found in firebase" >> $GITHUB_OUTPUT
             exit 0
           fi
           
           echo "📋 List to check: $allowed_keys"
           
-          if is_list_snake_case "$allowed_keys"; then
+          # Collect invalid keys
+          invalid_keys=()
+          while IFS= read -r key; do
+            if ! is_snake_case "$key"; then
+              invalid_keys+=("$key")
+            fi
+          done < <(echo "$allowed_keys" | jq -r '.[]')
+          
+          if [ ${#invalid_keys[@]} -eq 0 ]; then
             echo "✅ All items in 'allowed_event_keys' are in snake_case."
-            echo "has_violation=false" >> $GITHUB_OUTPUT
+            echo "has_firebase_violation=false" >> $GITHUB_OUTPUT
           else
-            echo "❌ Found item(s) not in snake_case."
-            echo "has_violation=true" >> $GITHUB_OUTPUT
+            echo "❌ Found item(s) not in snake_case:"
+            printf '%s\n' "${invalid_keys[@]}" | tee firebase_violations.txt
+            echo "has_firebase_violation=true" >> $GITHUB_OUTPUT
+            echo "firebase_violation_message=Invalid keys found in allowed_event_keys" >> $GITHUB_OUTPUT
+            echo "invalid_firebase_keys=$(IFS=, ; echo "${invalid_keys[*]}")" >> $GITHUB_OUTPUT
+            cat $GITHUB_OUTPUT
           fi
 
       # Step 4: Notify Slack if any problem occurs or if snake_case mismatch found
