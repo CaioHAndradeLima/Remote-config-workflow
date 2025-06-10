@@ -55,14 +55,35 @@ jobs:
           
           .github/action/firebase-get-request.sh "$PROJECT_ID" "$ACCESS_TOKEN" "$OUT_FILE"
           
-          cat $OUT_FILE
           echo "✅ Remote config saved to $OUT_FILE"
 
       # Step 3: Validate keys using snake_case checker
-      - name: 🐍 Step 3 - Run snake_case check
+
+      - name: 🐍 Step 3 - Checking firebase event keys
         id: check_snake_case
         run: |
-          # TODO: Parse JSON and call the script to validate snake_case in string lists
+          echo "🔍 Extracting information list from firebase"
+          
+          chmod +x .github/action/check-snake-case.sh
+          source .github/action/check-snake-case.sh
+          
+          # Extract the JSON string from firebase
+          raw_json=$(jq -r '.parameters.firebase.defaultValue.value' .remote_config.json)
+          
+          # Extract the 'allowed_event_keys' list from the inner JSON string
+          info_list=$(echo "$raw_json" | jq -r 'fromjson | .allowed_event_keys')
+          
+          echo "📋 List to check: $info_list"
+          
+          # Check snake_case on the list
+          if is_list_snake_case "$info_list"; then
+            echo "✅ All items in 'information' are in snake_case."
+            echo "has_violation=false" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Found item(s) not in snake_case."
+            echo "has_violation=true" >> $GITHUB_OUTPUT
+          fi
+
 
       # Step 4: Notify Slack if any problem occurs or if snake_case mismatch found
       - name: 📢 Step 4 - Notify Slack
