@@ -13,19 +13,36 @@ jobs:
       FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
       FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
       FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - name: 📦 Checkout repository
         uses: actions/checkout@v4
 
       # Step 1: Request token from Firebase
-      - name: 🔐 Step 1 - Request Firebase token
+      # Step 1: Request token from Firebase
+      - name: 🔐 Requesting Firebase token
         id: get_token
         run: |
-          # TODO: Implement logic to request Firebase access token using service account
-          # Save token in output variable for next steps
-          echo "token=FAKE_TOKEN" >> $GITHUB_OUTPUT
+          echo "📥 Requesting Firebase token..."
+
+          PRIVATE_KEY_CLEAN=$(echo "${FIREBASE_PRIVATE_KEY}" | sed 's/\\n/\n/g')
+
+          RESPONSE=$(./scripts/generate-firebase-token.sh "${FIREBASE_CLIENT_EMAIL}" "$PRIVATE_KEY_CLEAN")
+
+          echo "$RESPONSE"
+
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token // empty')
+
+          if [[ -z "$ACCESS_TOKEN" ]]; then
+            echo "❌ Failed to retrieve access_token from Firebase. Stopping workflow."
+            echo "::set-output name=error::true"
+            echo "::set-output name=message::Failed to retrieve access_token from Firebase."
+            exit 1
+          fi
+
+          echo "✅ Firebase token acquired."
+          echo "::set-output name=token::$ACCESS_TOKEN"
 
       # Step 2: GET current remote config template
       - name: 📡 Step 2 - Fetch current remote config
