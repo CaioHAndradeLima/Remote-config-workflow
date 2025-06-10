@@ -58,25 +58,42 @@ jobs:
           echo "✅ Remote config saved to $OUT_FILE"
 
       # Step 3: Validate keys using snake_case checker
-      - name: 🐍 Step 3 - Check firebase name
+      - name: 🐍 Step 3 - Check firebase.allowed_event_keys
         id: check_snake_case
         run: |
-          echo "🔍 Extracting information list from firebase"
+          echo "🔍 Extracting allowed_event_keys from firebase..."
           
           chmod +x .github/action/check-snake-case.sh
           source .github/action/check-snake-case.sh
           
-          # Extract the string field JSON stored in firebase.defaultValue.value
           raw_json=$(jq -r '.parameters.firebase.defaultValue.value' .remote_config.json)
           
-          # Unescape and parse string JSON using jq safely
-          info_list=$(echo "$raw_json" | jq -R 'fromjson | .firebase')
+          if [[ -z "$raw_json" || "$raw_json" == "null" ]]; then
+            echo "❌ No value found in firebase.defaultValue.value"
+            echo "has_violation=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           
-          echo "📋 List to check: $info_list"
+          parsed=$(echo "$raw_json" | jq -R 'fromjson?')
           
-          # Call your snake_case validation function
-          if is_list_snake_case "$info_list"; then
-            echo "✅ All items in 'firebase' are in snake_case."
+          if [[ -z "$parsed" || "$parsed" == "null" ]]; then
+            echo "❌ Failed to parse firebase.defaultValue.value as JSON"
+            echo "has_violation=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          allowed_keys=$(echo "$raw_json" | jq -R 'fromjson | .allowed_event_keys')
+          
+          if [[ "$allowed_keys" == "null" ]]; then
+            echo "❌ 'allowed_event_keys' field not found in firebase"
+            echo "has_violation=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "📋 List to check: $allowed_keys"
+          
+          if is_list_snake_case "$allowed_keys"; then
+            echo "✅ All items in 'allowed_event_keys' are in snake_case."
             echo "has_violation=false" >> $GITHUB_OUTPUT
           else
             echo "❌ Found item(s) not in snake_case."
