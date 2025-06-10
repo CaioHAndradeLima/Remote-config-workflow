@@ -28,7 +28,7 @@ jobs:
 
           PRIVATE_KEY_CLEAN=$(echo "${FIREBASE_PRIVATE_KEY}" | sed 's/\\n/\n/g')
 
-          RESPONSE=$(./scripts/generate-firebase-token.sh "${FIREBASE_CLIENT_EMAIL}" "$PRIVATE_KEY_CLEAN")
+          RESPONSE=$(.github/action/generate-firebase-token.sh "${FIREBASE_CLIENT_EMAIL}" "$PRIVATE_KEY_CLEAN")
 
           echo "$RESPONSE"
 
