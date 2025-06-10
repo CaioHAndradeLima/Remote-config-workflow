@@ -2,7 +2,7 @@
 
 # Function to check if a string is snake_case
 is_snake_case() {
-  [[ "$1" =~ ^[a-z]+(_[a-z0-9]+)*$ ]]
+  [[ "$1" =~ ^[a-z0-9]+(_[a-z0-9]+)*$ ]]
 }
 
 # Function to check if a list of strings is snake_case
