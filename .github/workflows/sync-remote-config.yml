@@ -1,0 +1,49 @@
+name: sync-remote-config
+
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-remote-config:
+    runs-on: ubuntu-latest
+
+    env:
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 1: Request token from Firebase
+      - name: 🔐 Step 1 - Request Firebase token
+        id: get_token
+        run: |
+          # TODO: Implement logic to request Firebase access token using service account
+          # Save token in output variable for next steps
+          echo "token=FAKE_TOKEN" >> $GITHUB_OUTPUT
+
+      # Step 2: GET current remote config template
+      - name: 📡 Step 2 - Fetch current remote config
+        id: fetch_template
+        run: |
+          # TODO: Use token from previous step to fetch the template via GET
+          # Save the response JSON in a variable/file
+          echo "template=FAKE_JSON" >> $GITHUB_OUTPUT
+
+      # Step 3: Validate keys using snake_case checker
+      - name: 🐍 Step 3 - Run snake_case check
+        id: check_snake_case
+        run: |
+          # TODO: Parse JSON and call the script to validate snake_case in string lists
+
+      # Step 4: Notify Slack if any problem occurs or if snake_case mismatch found
+      - name: 📢 Step 4 - Notify Slack
+        if: ${{ always() }}
+        run: |
+          # TODO: If we had issues in any step or found snake_case violations,
+          # format a message and send it to Slack using webhook

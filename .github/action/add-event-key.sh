@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Usage: ./add-new-event-key.sh <config_file> <param_name> <new_string>
+# Usage: ./add-event-key.sh <config_file> <param_name> <new_string>
 
 CONFIG_FILE=$1
 PARAM_KEY=$2

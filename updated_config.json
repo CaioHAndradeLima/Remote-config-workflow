@@ -1,0 +1,60 @@
+{
+  "conditions": [
+    {
+      "name": "version",
+      "expression": "app.version.==(['1.0.1'])",
+      "tagColor": "PINK"
+    },
+    {
+      "name": "version_equal_1.0.3",
+      "expression": "app.version.==(['1.0.3'])",
+      "tagColor": "GREEN"
+    },
+    {
+      "name": "version_equal_1.0.4",
+      "expression": "app.version.==(['1.0.4'])",
+      "tagColor": "GREEN"
+    }
+  ],
+  "parameters": {
+    "parametro2": {
+      "defaultValue": {
+        "value": "parametro2_default"
+      },
+      "conditionalValues": {
+        "version": {
+          "value": "parametro2_version_1.0.1"
+        },
+        "version_equal_1.0.3": {
+          "value": "parametro2_version_1.0.3"
+        },
+        "version_equal_1.0.4": {
+          "value": "parametro2_version_1.0.4"
+        }
+      },
+      "description": "parametro2",
+      "valueType": "STRING"
+    },
+    "parametro1": {
+      "defaultValue": {
+        "value": "{\"version\":8,\"information\":[\"value1\"]}"
+      },
+      "conditionalValues": {
+        "version": {
+          "value": "{\"version\":2,\"information\":[\"value1\"]}"
+        }
+      },
+      "description": "description1",
+      "valueType": "JSON"
+    }
+  },
+  "version": {
+    "versionNumber": "17",
+    "updateTime": "2025-06-06T18:27:33.158033Z",
+    "updateUser": {
+      "email": "token-for-venmo@horariocomigo.iam.gserviceaccount.com"
+    },
+    "updateOrigin": "REST_API",
+    "updateType": "INCREMENTAL_UPDATE"
+  }
+}
