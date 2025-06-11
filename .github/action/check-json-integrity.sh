@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Uso:
-# ./compare_configs.sh <parameter_updated> <json_original> <json_updated> <optional: condition>
+# ./check-json-integrity.sh <parameter_updated> <json_original> <json_updated> <optional: condition>
 
 KEY_TO_IGNORE="$1"
 ORIGINAL_JSON="$2"

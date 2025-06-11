@@ -1,0 +1,61 @@
+{
+  "conditions": [
+    {
+      "name": "version",
+      "expression": "app.version.==(['1.0.1'])",
+      "tagColor": "PINK"
+    },
+    {
+      "name": "version_equal_1.0.3",
+      "expression": "app.version.==(['1.0.3'])",
+      "tagColor": "GREEN"
+    },
+    {
+      "name": "version_equal_1.0.4",
+      "expression": "app.version.==(['1.0.4'])",
+      "tagColor": "GREEN"
+    }
+  ],
+  "parameters": {
+    "firebase": {
+      "defaultValue": {
+        "value": "{\"version\":9,\"allowed_event_keys\":[\"value1\",\"value2\",\"newValue\",\"new_string_to_add\",\"new_string_to_add\",\"new_string_to_add\",\"new_string_to_be_added_as_event\",\"new_string_to_be_added_as_event2\",\"new_string_to_be_added_as_event3\",\"new_string_to_be_added_as_event3\"]}"
+      },
+      "conditionalValues": {
+        "version": {
+          "value": "{\"version\":2,\"allowed_event_keys\":[\"value1\",\"value2\",\"newValue\"]}"
+        }
+      },
+      "description": "description1",
+      "valueType": "JSON"
+    },
+    "parametro2": {
+      "defaultValue": {
+        "value": "parametro2_default"
+      },
+      "conditionalValues": {
+        "version": {
+          "value": "parametro2_version_1.0.1"
+        },
+        "version_equal_1.0.3": {
+          "value": "parametro2_version_1.0.3"
+        },
+        "version_equal_1.0.4": {
+          "value": "parametro2_version_1.0.4"
+        }
+      },
+      "description": "parametro2",
+      "valueType": "STRING"
+    }
+  },
+  "version": {
+    "versionNumber": "20",
+    "updateTime": "2025-06-10T21:25:42.090997Z",
+    "updateUser": {
+      "email": "caiohandradelima@gmail.com"
+    },
+    "updateOrigin": "CONSOLE",
+    "updateType": "INCREMENTAL_UPDATE"
+  },
+  "etag": "etag-661196893467-20"
+}
