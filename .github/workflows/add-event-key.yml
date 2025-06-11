@@ -109,17 +109,3 @@ jobs:
           .github/action/check-json-integrity.sh "$PARAM_KEY" "$ORIGINAL_FILE" "$UPDATED_FILE"
 
           echo "✅ JSON integrity confirmed."
-      # 🛡️ Step 6 - Check JSON integrity before pushing update
-      - name: 📢 Step 6 - Send Slack notification and cleanup
-        run: |
-          echo "📤 Uploading updated config to Firebase..."
-
-          chmod +x .github/action/put-remote-config.sh
-
-          PROJECT_ID="${FIREBASE_PROJECT_ID}"
-          ACCESS_TOKEN="${{ steps.get_token.outputs.token }}"
-          UPDATED_FILE="updated_.remote_config.json"
-
-        # .github/action/firebase-put-request.sh "$PROJECT_ID" "$ACCESS_TOKEN" "$UPDATED_FILE"
-
-          echo "✅ Remote Config updated."
