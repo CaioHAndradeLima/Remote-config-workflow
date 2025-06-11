@@ -115,7 +115,7 @@ jobs:
         run: |
           echo "📤 Uploading updated config to Firebase..."
 
-          chmod +x .github/action/firebase-put-request.sh
+          chmod +x .github/action/put-remote-config.sh
 
           PROJECT_ID="${FIREBASE_PROJECT_ID}"
           ACCESS_TOKEN="${{ steps.get_token.outputs.token }}"
