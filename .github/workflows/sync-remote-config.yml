@@ -103,14 +103,46 @@ jobs:
             fi
           done < <(echo "$allowed_keys" | jq -r '.[]')
           
+          
+          # Validate conditionalValues
+          conditional_keys=$(jq -r '.parameters.firebase.conditionalValues | keys[]' .remote_config.json)
+          
+          for condition_key in $conditional_keys; do
+            echo "🔍 Extracting allowed_event_keys from conditional '$condition_key'..."
+          
+            raw_conditional_json=$(jq -r --arg key "$condition_key" '.parameters.firebase.conditionalValues[$key].value' .remote_config.json)
+          
+            parsed_conditional=$(echo "$raw_conditional_json" | jq -R 'fromjson?')
+          
+            if [[ -z "$parsed_conditional" || "$parsed_conditional" == "null" ]]; then
+              echo "⚠️ Failed to parse conditional '$condition_key' as JSON"
+              continue
+            fi
+          
+            allowed_keys_conditional=$(echo "$raw_conditional_json" | jq -R 'fromjson | .allowed_event_keys')
+          
+            if [[ "$allowed_keys_conditional" == "null" ]]; then
+              echo "⚠️ 'allowed_event_keys' not found in conditional '$condition_key'"
+              continue
+            fi
+          
+            echo "📋 List to check for '$condition_key': $allowed_keys_conditional"
+          
+            while IFS= read -r key; do
+              if ! is_snake_case "$key"; then
+                invalid_keys+=("${key} (conditional: $condition_key)")
+              fi
+            done < <(echo "$allowed_keys_conditional" | jq -r '.[]')
+          done
+
           if [ ${#invalid_keys[@]} -eq 0 ]; then
-            echo "✅ All items in 'allowed_event_keys' are in snake_case."
+            echo "✅ All items in 'allowed_event_keys' (default + conditionals) are in snake_case."
             echo "has_firebase_violation=false" >> $GITHUB_OUTPUT
           else
             echo "❌ Found item(s) not in snake_case:"
             printf '%s\n' "${invalid_keys[@]}" | tee firebase_violations.txt
             echo "has_firebase_violation=true" >> $GITHUB_OUTPUT
-            echo "firebase_violation_message=Invalid keys found in allowed_event_keys" >> $GITHUB_OUTPUT
+            echo "firebase_violation_message=Invalid keys found in allowed_event_keys (default or conditional)" >> $GITHUB_OUTPUT
             echo "invalid_firebase_keys=$(IFS=, ; echo "${invalid_keys[*]}")" >> $GITHUB_OUTPUT
           fi
 
