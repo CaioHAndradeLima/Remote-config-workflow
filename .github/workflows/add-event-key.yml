@@ -26,6 +26,9 @@ jobs:
       FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
 
     steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
       # ✅ Step 1: Validate if the event is snake_case
       - name: 🐍 Step 1 - Validate snake_case
         run: |
