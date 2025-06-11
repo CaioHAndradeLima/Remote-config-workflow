@@ -116,8 +116,19 @@ jobs:
           fi
 
       # Step 4: Notify Slack if any problem occurs or if snake_case mismatch found
-      - name: 📢 Step 4 - Notify Slack
-        if: ${{ always() }}
+      - name: 📢 Step 4 - Check for violations and print report
+        if: always()
         run: |
-          # TODO: If we had issues in any step or found snake_case violations,
-          # format a message and send it to Slack using webhook
+          echo "📊 Validating results from previous step..."
+          
+          if [[ "${{ steps.check_snake_case.outputs.has_firebase_violation }}" == "true" ]]; then
+            echo "❌ Firebase allowed_event_keys has invalid snake_case items."
+            echo "🪵 Reason: ${{ steps.check_snake_case.outputs.firebase_violation_message }}"
+            echo "🔑 Invalid keys: ${{ steps.check_snake_case.outputs.invalid_firebase_keys }}"
+          
+            echo ""
+            echo "🚨 CI FAILED due to snake_case violations in Firebase Remote Config"
+            exit 1
+          else
+            echo "✅ No snake_case violations found."
+          fi
