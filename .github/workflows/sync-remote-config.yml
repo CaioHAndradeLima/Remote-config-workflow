@@ -92,9 +92,7 @@ jobs:
             echo "firebase_violation_message=field allowed_event_keys not found in firebase" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
-          echo "📋 List to check: $allowed_keys"
-          
+                    
           # Collect invalid keys
           invalid_keys=()
           while IFS= read -r key; do
@@ -125,9 +123,7 @@ jobs:
               echo "⚠️ 'allowed_event_keys' not found in conditional '$condition_key'"
               continue
             fi
-          
-            echo "📋 List to check for '$condition_key': $allowed_keys_conditional"
-          
+                    
             while IFS= read -r key; do
               if ! is_snake_case "$key"; then
                 invalid_keys+=("${key} (conditional: $condition_key)")
