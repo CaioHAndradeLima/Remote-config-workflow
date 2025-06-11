@@ -87,7 +87,7 @@ jobs:
         id: add_event
         run: |
           CONFIG_FILE=".remote_config.json"
-          PARAM_KEY="allowed_event_keys"
+          PARAM_KEY="firebase"
           NEW_EVENT="${{ github.event.inputs.new_event_name }}"
           UPDATED_FILE="updated_remote_config.json"
 
