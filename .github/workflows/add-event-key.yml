@@ -96,7 +96,6 @@ jobs:
 
           echo "✅ Event processed. Output written to $UPDATED_FILE"
 
-      # 🛡️ Step 5 - Check if only the expected changes were made
       # 🛡️ Step 5 - Check JSON integrity before pushing update
       - name: 🛡️ Step 5 - Check JSON integrity before pushing update
         run: |
@@ -110,7 +109,7 @@ jobs:
           .github/action/check-json-integrity.sh "$PARAM_KEY" "$ORIGINAL_FILE" "$UPDATED_FILE"
 
           echo "✅ JSON integrity confirmed."
-
+      # 🛡️ Step 6 - Check JSON integrity before pushing update
       - name: 📢 Step 6 - Send Slack notification and cleanup
         run: |
           echo "📤 Uploading updated config to Firebase..."
