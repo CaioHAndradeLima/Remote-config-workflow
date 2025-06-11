@@ -112,7 +112,6 @@ jobs:
             echo "has_firebase_violation=true" >> $GITHUB_OUTPUT
             echo "firebase_violation_message=Invalid keys found in allowed_event_keys" >> $GITHUB_OUTPUT
             echo "invalid_firebase_keys=$(IFS=, ; echo "${invalid_keys[*]}")" >> $GITHUB_OUTPUT
-            cat $GITHUB_OUTPUT
           fi
 
       # Step 4: Notify Slack if any problem occurs or if snake_case mismatch found
