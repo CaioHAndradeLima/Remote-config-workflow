@@ -108,7 +108,7 @@ jobs:
         run: |
           ORIGINAL_FILE=".remote_config.json"
           UPDATED_FILE="updated_remote_config.json"
-          PARAM_KEY="allowed_event_keys"
+          PARAM_KEY="firebase"
 
           chmod +x .github/action/check-json-integrity.sh
 
