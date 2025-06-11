@@ -48,6 +48,7 @@ jobs:
 
       # 🔐 Step 2: Generate Firebase Token
       - name: 🔐 Step 2 - Generate Firebase Token
+        id: get_token
         run: |
           echo "📥 Requesting Firebase token..."
 
@@ -68,6 +69,7 @@ jobs:
           echo "token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
       # 📥 Step 3: Download Remote Config Template
       - name: 📥 Step 3 - Get Remote Config Template
+        id: get_remote_config
         run: |
           echo "📥 Requesting Remote Config template..."
           chmod +x .github/action/firebase-get-request.sh
@@ -82,6 +84,7 @@ jobs:
 
       # ➕ Step 4: Add event to allowed_event_keys
       - name: ➕ Step 4 - Add event to list
+        id: add_event
         run: |
           CONFIG_FILE=".remote_config.json"
           PARAM_KEY="allowed_event_keys"
@@ -101,6 +104,7 @@ jobs:
 
       # 🛡️ Step 5 - Check JSON integrity before pushing update
       - name: 🛡️ Step 5 - Check JSON integrity before pushing update
+        id: check_integrity
         run: |
           ORIGINAL_FILE=".remote_config.json"
           UPDATED_FILE="updated_remote_config.json"
