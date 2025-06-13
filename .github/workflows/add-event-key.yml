@@ -11,9 +11,10 @@ on:
       target_tool:
         description: "Marketing tool"
         required: true
-        default: "firebase"
+        default: "braze"
         type: choice
         options:
+          - braze
           - firebase
 
 jobs:
