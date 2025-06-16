@@ -11,7 +11,7 @@ on:
       target_tool:
         description: "Marketing tool"
         required: true
-        default: "braze"
+        default: "firebase"
         type: choice
         options:
           - braze
