@@ -122,12 +122,9 @@ jobs:
       - name: Step 6 - Push updated config to Firebase
         if: ${{ steps.check_integrity.outcome == 'success' }}
         run: |
-          ACCESS_TOKEN="${{ steps.get_token.outputs.token }}"
           PROJECT_ID="${FIREBASE_PROJECT_ID}"
           CONFIG_FILE="updated_remote_config.json"
           
           chmod +x .github/action/put-remote-config.sh
           echo "🚀 Sending updated config to Firebase..."
-          .github/action/put-remote-config.sh "$ACCESS_TOKEN" "$PROJECT_ID" "$CONFIG_FILE"
-
-          echo "✅ Remote Config successfully updated on Firebase."
+          .github/action/put-remote-config.sh "${{ steps.get_token.outputs.token }}" "$PROJECT_ID" "$CONFIG_FILE"
