@@ -35,12 +35,13 @@ if [[ "$ALREADY_EXISTS" != "null" ]]; then
   exit 1
 fi
 
-# Add the string to the list and increment version
-NEW_LIST=$(echo "$INNER_JSON" | jq --arg str "$NEW_STRING" '.allowed_event_keys + [$str]')
+# Add the string to the list only (no version bump)
+UPDATED_INNER_JSON=$(echo "$INNER_JSON" | jq --arg str "$NEW_STRING" '
+  .allowed_event_keys += [$str]
+')
 
-# Construct updated JSON and escape it
-UPDATED_VALUE=$(echo "$NEW_LIST" | jq -c .)
+# Re-escape updated value
+UPDATED_VALUE=$(echo "$UPDATED_INNER_JSON" | jq -c .)
 
 # Replace value in original config and save as new file
 jq --arg val "$UPDATED_VALUE" ".parameters[\"$PARAM_KEY\"].defaultValue.value = \$val" "$CONFIG_FILE" > "updated_$CONFIG_FILE"
-
