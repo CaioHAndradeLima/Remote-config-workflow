@@ -129,7 +129,7 @@ jobs:
           done
           
           #bump file version
-          FINAL_TMP=$(mktemp)
+          BUMP_TEMP_FILE=$(mktemp)
           jq ".parameters[\"$PARAM_KEY\"].value.version += 1" "$TEMP_FILE" > "$BUMP_TEMP_FILE"
           
           mv "$BUMP_TEMP_FILE" "$UPDATED_FILE"
