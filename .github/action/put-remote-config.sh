@@ -21,11 +21,25 @@ fi
 CLEANED_FILE=$(mktemp)
 jq 'del(.etag)' "$CONFIG_FILE" > "$CLEANED_FILE"
 
-curl -s -X PUT "https://firebaseremoteconfig.googleapis.com/v1/projects/$PROJECT_ID/remoteConfig" \
+HTTP_RESPONSE=$(mktemp)
+HTTP_CODE=$(curl -s -w "%{http_code}" -o "$HTTP_RESPONSE" -X PUT "https://firebaseremoteconfig.googleapis.com/v1/projects/$PROJECT_ID/remoteConfig" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json; UTF-8" \
   -H "If-Match: $ETAG" \
-  --data-binary @"$CLEANED_FILE" | jq
+  --data-binary @"$CLEANED_FILE")
 
-  # 🧹 Clean up temporary files
+# Clean up file immediately
 rm -f "$CLEANED_FILE"
+
+# Check if response code is not 2xx
+if [[ "$HTTP_CODE" =~ ^2 ]]; then
+  echo "✅ Remote Config successfully updated on Firebase."
+else
+  echo "❌ Failed to update Remote Config (HTTP $HTTP_CODE)"
+  echo "🔎 Error details:"
+  cat "$HTTP_RESPONSE" | jq
+  rm -f "$HTTP_RESPONSE"
+  exit 1
+fi
+
+rm -f "$HTTP_RESPONSE"
