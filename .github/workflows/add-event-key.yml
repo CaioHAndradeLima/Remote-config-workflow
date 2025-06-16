@@ -101,24 +101,37 @@ jobs:
           echo "✅ Remote config saved to $OUT_FILE"
 
       # ➕ Step 4: Add event to allowed_event_keys
-      - name: ➕ Step 4 - Add event to list
+      - name: ➕ Step 4 - Add event(s) to list
         id: add_event
         run: |
           CONFIG_FILE=".remote_config.json"
-          PARAM_KEY="${{inputs.target_tool}}"
-          NEW_EVENT="${{ github.event.inputs.new_event_name }}"
+          PARAM_KEY="${{ github.event.inputs.target_tool }}"
+          RAW_EVENTS="${{ github.event.inputs.new_event_name }}"
           UPDATED_FILE="updated_remote_config.json"
-
+          
           chmod +x .github/action/add-event-key.sh
-
-          echo "🔍 Checking and updating $PARAM_KEY with event: $NEW_EVENT"
-
-          .github/action/add-event-key.sh "$CONFIG_FILE" "$PARAM_KEY" "$NEW_EVENT"
-
-          # Rename the output for consistency
-          mv "updated_${CONFIG_FILE}" "$UPDATED_FILE"
-
-          echo "✅ Event processed. Output written to $UPDATED_FILE"
+          
+          echo "🔍 Preparing to add event(s) to $PARAM_KEY: $RAW_EVENTS"
+          
+          # Split by comma and trim each item
+          IFS=',' read -ra EVENTS <<< "$RAW_EVENTS"
+          
+          TEMP_FILE="$CONFIG_FILE"
+          
+          for event in "${EVENTS[@]}"; do
+            TRIMMED_EVENT="$(echo "$event" | xargs)" # trim whitespace
+          
+            echo "🔧 Adding event: '$TRIMMED_EVENT'"
+            .github/action/add-event-key.sh "$TEMP_FILE" "$PARAM_KEY" "$TRIMMED_EVENT"
+          
+            # Update the input file for the next loop
+            TEMP_FILE="updated_$TEMP_FILE"
+          done
+          
+          # Final output rename
+          mv "$TEMP_FILE" "$UPDATED_FILE"
+          
+          echo "✅ All events processed. Output written to $UPDATED_FILE"
 
       # 🛡️ Step 5 - Check JSON integrity before pushing update
       - name: 🛡️ Step 5 - Check JSON integrity before pushing update
