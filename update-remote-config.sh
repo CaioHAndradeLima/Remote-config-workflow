@@ -43,7 +43,7 @@ echo "$INNER_JSON" | jq .
 
 # Extrai versão e lista
 OLD_VERSION=$(echo "$INNER_JSON" | jq -r '.version')
-OLD_LIST=$(echo "$INNER_JSON" | jq '.information')
+OLD_LIST=$(echo "$INNER_JSON" | jq '.allowed_event_keys')
 
 echo "📦 Versão antiga: $OLD_VERSION"
 echo "📚 Lista antiga:"
@@ -61,7 +61,7 @@ echo "🧮 Nova versão: $NEW_VERSION"
 NEW_VALUE_ESCAPED=$(jq -n \
   --argjson info "$NEW_LIST" \
   --argjson version "$NEW_VERSION" \
-  '{version: $version, information: $info}' | jq -c .)
+  '{version: $version, allowed_event_keys: $info}' | jq -c .)
 
 echo "🧪 Novo valor JSON (pronto para ser salvo como string):"
 echo "$NEW_VALUE_ESCAPED"

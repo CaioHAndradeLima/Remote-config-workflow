@@ -37,11 +37,11 @@
     },
     "parametro1": {
       "defaultValue": {
-        "value": "{\"version\":8,\"information\":[\"value1\"]}"
+        "value": "{\"version\":8,\"allowed_event_keys\":[\"value1\"]}"
       },
       "conditionalValues": {
         "version": {
-          "value": "{\"version\":2,\"information\":[\"value1\"]}"
+          "value": "{\"version\":2,\"allowed_event_keys\":[\"value1\"]}"
         }
       },
       "description": "description1",

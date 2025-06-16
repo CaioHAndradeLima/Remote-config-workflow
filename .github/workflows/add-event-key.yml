@@ -127,7 +127,6 @@ jobs:
           CONFIG_FILE="updated_remote_config.json"
           
           chmod +x .github/action/put-remote-config.sh
-          cat $CONFIG_FILE
           echo "🚀 Sending updated config to Firebase..."
           .github/action/put-remote-config.sh "$ACCESS_TOKEN" "$PROJECT_ID" "$CONFIG_FILE"
 

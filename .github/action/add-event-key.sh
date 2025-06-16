@@ -28,7 +28,7 @@ fi
 INNER_JSON=$(echo "$PARAM_JSON_STRING" | jq -R 'fromjson')
 
 # Check if the string is already present
-ALREADY_EXISTS=$(echo "$INNER_JSON" | jq --arg str "$NEW_STRING" '.information | index($str)')
+ALREADY_EXISTS=$(echo "$INNER_JSON" | jq --arg str "$NEW_STRING" '.allowed_event_keys | index($str)')
 
 if [[ "$ALREADY_EXISTS" != "null" ]]; then
   echo "⚠️  The string \"$NEW_STRING\" already exists in the parameter \"$PARAM_KEY\"."
@@ -36,14 +36,14 @@ if [[ "$ALREADY_EXISTS" != "null" ]]; then
 fi
 
 # Add the string to the list and increment version
-NEW_LIST=$(echo "$INNER_JSON" | jq --arg str "$NEW_STRING" '.information + [$str]')
+NEW_LIST=$(echo "$INNER_JSON" | jq --arg str "$NEW_STRING" '.allowed_event_keys + [$str]')
 NEW_VERSION=$(echo "$INNER_JSON" | jq '.version + 1')
 
 # Construct updated JSON and escape it
 UPDATED_VALUE=$(jq -n \
   --argjson info "$NEW_LIST" \
   --argjson version "$NEW_VERSION" \
-  '{version: $version, information: $info}' | jq -c .)
+  '{version: $version, allowed_event_keys: $info}' | jq -c .)
 
 # Replace value in original config and save as new file
 jq --arg val "$UPDATED_VALUE" ".parameters[\"$PARAM_KEY\"].defaultValue.value = \$val" "$CONFIG_FILE" > "updated_$CONFIG_FILE"

@@ -28,7 +28,7 @@ fi
 INNER_JSON=$(echo "$PARAM_JSON_STRING" | jq -R 'fromjson')
 
 # Check if the string exists
-STRING_INDEX=$(echo "$INNER_JSON" | jq --arg str "$STRING_TO_REMOVE" '.information | index($str)')
+STRING_INDEX=$(echo "$INNER_JSON" | jq --arg str "$STRING_TO_REMOVE" '.allowed_event_keys | index($str)')
 
 if [[ "$STRING_INDEX" == "null" ]]; then
   echo "⚠️  The string \"$STRING_TO_REMOVE\" does not exist in \"$PARAM_KEY\"."
@@ -36,7 +36,7 @@ if [[ "$STRING_INDEX" == "null" ]]; then
 fi
 
 # Remove the string from the list
-UPDATED_LIST=$(echo "$INNER_JSON" | jq --arg str "$STRING_TO_REMOVE" '.information | map(select(. != $str))')
+UPDATED_LIST=$(echo "$INNER_JSON" | jq --arg str "$STRING_TO_REMOVE" '.allowed_event_keys | map(select(. != $str))')
 
 # Decrement version only if list is modified
 OLD_VERSION=$(echo "$INNER_JSON" | jq '.version')
@@ -49,7 +49,7 @@ fi
 UPDATED_VALUE=$(jq -n \
   --argjson info "$UPDATED_LIST" \
   --argjson version "$NEW_VERSION" \
-  '{version: $version, information: $info}' | jq -c .)
+  '{version: $version, allowed_event_keys: $info}' | jq -c .)
 
 # Save updated config
 jq --arg val "$UPDATED_VALUE" \
