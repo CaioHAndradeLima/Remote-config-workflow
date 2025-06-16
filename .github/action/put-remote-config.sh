@@ -3,7 +3,7 @@
 # put_remote_config.sh
 
 ACCESS_TOKEN="$1"
-PROJECT_ID=horariocomigo
+PROJECT_ID="$2"
 ETAG="$3"
 CONFIG_FILE="$4"
 
@@ -12,6 +12,16 @@ if [[ -z "$ACCESS_TOKEN" || -z "$PROJECT_ID" || -z "$ETAG" || -z "$CONFIG_FILE" 
   exit 1
 fi
 
+# Extract ETag from config and remove it from JSON
+ETAG=$(jq -r '.etag // empty' "$CONFIG_FILE")
+if [[ -z "$ETAG" ]]; then
+  echo "❌ ETag not found in config file."
+  exit 1
+fi
+
+CLEANED_FILE=$(mktemp)
+jq 'del(.etag)' "$CONFIG_FILE" > "$CLEANED_FILE"
+
 curl -s -X PUT "https://firebaseremoteconfig.googleapis.com/v1/projects/$PROJECT_ID/remoteConfig" \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json; UTF-8" \
@@ -19,4 +29,4 @@ curl -s -X PUT "https://firebaseremoteconfig.googleapis.com/v1/projects/$PROJECT
   --data-binary @"$CONFIG_FILE" | jq
 
   # 🧹 Clean up temporary files
-  rm -f headers.txt config.json new_config.json
+rm -f "$CLEANED_FILE"

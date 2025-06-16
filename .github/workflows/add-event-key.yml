@@ -117,3 +117,24 @@ jobs:
           .github/action/check-json-integrity.sh "$PARAM_KEY" "$ORIGINAL_FILE" "$UPDATED_FILE"
 
           echo "✅ JSON integrity confirmed."
+
+      # 🚀 Step 6 - Push updated Remote Config to Firebase
+      - name: Step 6 - Push updated config to Firebase
+        if: ${{ steps.check_integrity.outcome == 'success' }}
+        run: |
+          ACCESS_TOKEN="${{ steps.get_token.outputs.token }}"
+          PROJECT_ID="${FIREBASE_PROJECT_ID}"
+          CONFIG_FILE="updated_remote_config.json"
+          ETAG=$(cat etag.txt)
+
+          if [[ -z "$ETAG" ]]; then
+            echo "❌ Missing ETag. Cannot continue with PUT request."
+            exit 1
+          fi
+
+          chmod +x .github/action/put_remote_config.sh
+
+          echo "🚀 Sending updated config to Firebase..."
+          .github/action/put_remote_config.sh "$ACCESS_TOKEN" "$PROJECT_ID" "$ETAG" "$CONFIG_FILE"
+
+          echo "✅ Remote Config successfully updated on Firebase."
