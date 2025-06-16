@@ -31,21 +31,38 @@ jobs:
         uses: actions/checkout@v4
 
       # ✅ Step 1: Validate if the event is snake_case
-      - name: 🐍 Step 1 - Validate snake_case
+      - name: 🐍 Step 1 - Validate snake_case (single or comma-separated)
         run: |
           chmod +x .github/action/check-snake-case.sh
           source .github/action/check-snake-case.sh
-
-          event_name="${{ github.event.inputs.new_event_name }}"
-
-          echo "🔍 Validating event name: $event_name"
-
-          if is_snake_case "$event_name"; then
-            echo "✅ Event name is valid (snake_case)"
-          else
-            echo "❌ Event name is not valid (must be snake_case: lowercase with underscores)"
+          
+          raw_input="${{ github.event.inputs.new_event_name }}"
+          echo "🔍 Raw input: $raw_input"
+          
+          # Split by comma and trim whitespace
+          IFS=',' read -ra EVENTS <<< "$raw_input"
+          
+          all_valid=true
+          
+          for event in "${EVENTS[@]}"; do
+            event_trimmed="$(echo "$event" | xargs)" # trim whitespace
+          
+            echo "🔍 Validating event name: '$event_trimmed'"
+          
+            if is_snake_case "$event_trimmed"; then
+              echo "✅ '$event_trimmed' is valid"
+            else
+              echo "❌ '$event_trimmed' is not valid (must be snake_case)"
+              all_valid=false
+            fi
+          done
+          
+          if [ "$all_valid" = false ]; then
+            echo "❌ One or more event names are invalid. Aborting."
             exit 1
           fi
+          
+          echo "✅ All event names are valid."
 
       # 🔐 Step 2: Generate Firebase Token
       - name: 🔐 Step 2 - Generate Firebase Token
