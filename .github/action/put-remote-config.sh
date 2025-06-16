@@ -25,7 +25,7 @@ curl -s -X PUT "https://firebaseremoteconfig.googleapis.com/v1/projects/$PROJECT
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json; UTF-8" \
   -H "If-Match: $ETAG" \
-  --data-binary @"$CONFIG_FILE" | jq
+  --data-binary @"$CLEANED_FILE" | jq
 
   # 🧹 Clean up temporary files
 rm -f "$CLEANED_FILE"
