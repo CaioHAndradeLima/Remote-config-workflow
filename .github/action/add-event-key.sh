@@ -39,9 +39,8 @@ fi
 NEW_LIST=$(echo "$INNER_JSON" | jq --arg str "$NEW_STRING" '.allowed_event_keys + [$str]')
 
 # Construct updated JSON and escape it
-UPDATED_VALUE=$(jq -n \
-  --argjson info "$NEW_LIST" \
-  '{version: .version, allowed_event_keys: $info}' | jq -c .)
+UPDATED_VALUE=$(echo "$UPDATED_INNER_JSON" | jq -c .)
 
 # Replace value in original config and save as new file
 jq --arg val "$UPDATED_VALUE" ".parameters[\"$PARAM_KEY\"].defaultValue.value = \$val" "$CONFIG_FILE" > "updated_$CONFIG_FILE"
+
