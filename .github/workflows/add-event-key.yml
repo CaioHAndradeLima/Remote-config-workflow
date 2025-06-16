@@ -88,7 +88,7 @@ jobs:
         id: add_event
         run: |
           CONFIG_FILE=".remote_config.json"
-          PARAM_KEY="firebase"
+          PARAM_KEY="${{inputs.new_event_name}}"
           NEW_EVENT="${{ github.event.inputs.new_event_name }}"
           UPDATED_FILE="updated_remote_config.json"
 
@@ -109,7 +109,7 @@ jobs:
         run: |
           ORIGINAL_FILE=".remote_config.json"
           UPDATED_FILE="updated_remote_config.json"
-          PARAM_KEY="firebase"
+          PARAM_KEY="${{inputs.new_event_name}}"
 
           chmod +x .github/action/check-json-integrity.sh
 
