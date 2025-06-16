@@ -37,12 +37,10 @@ fi
 
 # Add the string to the list and increment version
 NEW_LIST=$(echo "$INNER_JSON" | jq --arg str "$NEW_STRING" '.allowed_event_keys + [$str]')
-NEW_VERSION=$(echo "$INNER_JSON" | jq '.version + 1')
 
 # Construct updated JSON and escape it
 UPDATED_VALUE=$(jq -n \
   --argjson info "$NEW_LIST" \
-  --argjson version "$NEW_VERSION" \
   '{version: $version, allowed_event_keys: $info}' | jq -c .)
 
 # Replace value in original config and save as new file

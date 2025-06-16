@@ -128,8 +128,11 @@ jobs:
             TEMP_FILE="updated_$TEMP_FILE"
           done
           
-          # Final output rename
-          mv "$TEMP_FILE" "$UPDATED_FILE"
+          #bump file version
+          FINAL_TMP=$(mktemp)
+          jq ".parameters[\"$PARAM_KEY\"].value.version += 1" "$TEMP_FILE" > "$BUMP_TEMP_FILE"
+          
+          mv "$BUMP_TEMP_FILE" "$UPDATED_FILE"
           
           echo "✅ All events processed. Output written to $UPDATED_FILE"
 
