@@ -4,10 +4,9 @@
 
 ACCESS_TOKEN="$1"
 PROJECT_ID="$2"
-ETAG="$3"
-CONFIG_FILE="$4"
+CONFIG_FILE="$3"
 
-if [[ -z "$ACCESS_TOKEN" || -z "$PROJECT_ID" || -z "$ETAG" || -z "$CONFIG_FILE" ]]; then
+if [[ -z "$ACCESS_TOKEN" || -z "$PROJECT_ID" || -z "$CONFIG_FILE" ]]; then
   echo "use: $0 <access_token> <project_id> <etag> <config_file>"
   exit 1
 fi
