@@ -133,7 +133,7 @@ jobs:
           #jq ".parameters[\"$PARAM_KEY\"].defaultValue.value |=
           #(fromjson | .version += 1 | tojson)" "$TEMP_FILE" > "$BUMP_TEMP_FILE"
           
-          mv "TEMP_FILE" "$UPDATED_FILE"
+          mv "$TEMP_FILE" "$UPDATED_FILE"
           
           echo "✅ All events processed. Output written to $UPDATED_FILE"
 
