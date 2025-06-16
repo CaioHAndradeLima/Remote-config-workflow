@@ -32,7 +32,7 @@ ALREADY_EXISTS=$(echo "$INNER_JSON" | jq --arg str "$NEW_STRING" '.allowed_event
 
 if [[ "$ALREADY_EXISTS" != "null" ]]; then
   echo "⚠️  The string \"$NEW_STRING\" already exists in the parameter \"$PARAM_KEY\"."
-  exit 0
+  exit 1
 fi
 
 # Add the string to the list and increment version

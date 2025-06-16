@@ -31,7 +31,6 @@ HTTP_CODE=$(curl -s -w "%{http_code}" -o "$HTTP_RESPONSE" -X PUT "https://fireba
 # Clean up file immediately
 rm -f "$CLEANED_FILE"
 
-echo $HTTP_CODE
 # Check if response code is not 2xx
 if [[ "$HTTP_CODE" =~ ^2 ]]; then
   echo "✅ Remote Config successfully updated on Firebase."

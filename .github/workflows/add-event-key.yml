@@ -127,4 +127,4 @@ jobs:
           
           chmod +x .github/action/put-remote-config.sh
           echo "🚀 Sending updated config to Firebase..."
-          .github/action/put-remote-config.sh "2424" "$PROJECT_ID" "$CONFIG_FILE"
+          .github/action/put-remote-config.sh "${{ steps.get_token.outputs.token }}" "$PROJECT_ID" "$CONFIG_FILE"
