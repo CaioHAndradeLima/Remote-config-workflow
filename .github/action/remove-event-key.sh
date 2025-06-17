@@ -31,27 +31,17 @@ INNER_JSON=$(echo "$PARAM_JSON_STRING" | jq -R 'fromjson')
 STRING_INDEX=$(echo "$INNER_JSON" | jq --arg str "$STRING_TO_REMOVE" '.allowed_event_keys | index($str)')
 
 if [[ "$STRING_INDEX" == "null" ]]; then
-  echo "⚠️  The string \"$STRING_TO_REMOVE\" does not exist in \"$PARAM_KEY\"."
-  exit 0
+  echo "⚠️  The string \"$STRING_TO_REMOVE\" does not exist in the parameter \"$PARAM_KEY\"."
+  exit 1
 fi
 
-# Remove the string from the list
-UPDATED_LIST=$(echo "$INNER_JSON" | jq --arg str "$STRING_TO_REMOVE" '.allowed_event_keys | map(select(. != $str))')
+# Remove the string from list
+UPDATED_INNER_JSON=$(echo "$INNER_JSON" | jq --arg str "$STRING_TO_REMOVE" '
+  .allowed_event_keys -= [$str]
+')
 
-# Decrement version only if list is modified
-OLD_VERSION=$(echo "$INNER_JSON" | jq '.version')
-NEW_VERSION=$((OLD_VERSION - 1))
-if [[ "$NEW_VERSION" -lt 0 ]]; then
-  NEW_VERSION=0
-fi
+# Re-escape updated value
+UPDATED_VALUE=$(echo "$UPDATED_INNER_JSON" | jq -c .)
 
-# Build the updated object
-UPDATED_VALUE=$(jq -n \
-  --argjson info "$UPDATED_LIST" \
-  --argjson version "$NEW_VERSION" \
-  '{version: $version, allowed_event_keys: $info}' | jq -c .)
-
-# Save updated config
-jq --arg val "$UPDATED_VALUE" \
-  ".parameters[\"$PARAM_KEY\"].defaultValue.value = \$val" \
-  "$CONFIG_FILE" > "updated_$CONFIG_FILE"
+# Replace value in original config and save as new file
+jq --arg val "$UPDATED_VALUE" ".parameters[\"$PARAM_KEY\"].defaultValue.value = \$val" "$CONFIG_FILE" > "updated_$CONFIG_FILE"

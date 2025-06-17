@@ -1,0 +1,164 @@
+name: Remove an event key
+
+on:
+  workflow_dispatch:
+    inputs:
+      new_event_name:
+        description: "Event key name in snake case"
+        required: true
+        type: string
+
+      target_tool:
+        description: "Marketing tool"
+        required: true
+        default: "firebase"
+        type: choice
+        options:
+          - braze
+          - firebase
+
+jobs:
+  remove_event:
+    runs-on: ubuntu-latest
+
+    env:
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      # ✅ Step 1: Validate if the event is snake_case
+      - name: 🐍 Step 1 - Validate snake_case (single or comma-separated)
+        run: |
+          chmod +x .github/action/check-snake-case.sh
+          source .github/action/check-snake-case.sh
+          
+          raw_input="${{ github.event.inputs.new_event_name }}"
+          echo "🔍 Raw input: $raw_input"
+          
+          # Split by comma and trim whitespace
+          IFS=',' read -ra EVENTS <<< "$raw_input"
+          
+          all_valid=true
+          
+          for event in "${EVENTS[@]}"; do
+            event_trimmed="$(echo "$event" | xargs)" # trim whitespace
+          
+            echo "🔍 Validating event name: '$event_trimmed'"
+          
+            if is_snake_case "$event_trimmed"; then
+              echo "✅ '$event_trimmed' is valid"
+            else
+              echo "❌ '$event_trimmed' is not valid (must be snake_case)"
+              all_valid=false
+            fi
+          done
+          
+          if [ "$all_valid" = false ]; then
+            echo "❌ One or more event names are invalid. Aborting."
+            exit 1
+          fi
+          
+          echo "✅ All event names are valid."
+
+      # 🔐 Step 2: Generate Firebase Token
+      - name: 🔐 Step 2 - Generate Firebase Token
+        id: get_token
+        run: |
+          echo "📥 Requesting Firebase token..."
+
+          PRIVATE_KEY_CLEAN=$(echo "${FIREBASE_PRIVATE_KEY}" | sed 's/\\n/\n/g')
+
+          RESPONSE=$(.github/action/generate-firebase-token.sh "${FIREBASE_CLIENT_EMAIL}" "$PRIVATE_KEY_CLEAN")
+
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token // empty')
+
+          if [[ -z "$ACCESS_TOKEN" ]]; then
+            echo "❌ Failed to retrieve access_token from Firebase. Stopping workflow."
+            echo "::set-output name=error::true"
+            echo "::set-output name=message::Failed to retrieve access_token from Firebase."
+            exit 1
+          fi
+
+          echo "✅ Firebase token acquired."
+          echo "token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+      # 📥 Step 3: Download Remote Config Template
+      - name: 📥 Step 3 - Get Remote Config Template
+        id: get_remote_config
+        run: |
+          echo "📥 Requesting Remote Config template..."
+          chmod +x .github/action/firebase-get-request.sh
+          
+          PROJECT_ID="${FIREBASE_PROJECT_ID}"
+          ACCESS_TOKEN="${{ steps.get_token.outputs.token }}"
+          OUT_FILE=".remote_config.json"
+          
+          .github/action/firebase-get-request.sh "$PROJECT_ID" "$ACCESS_TOKEN" "$OUT_FILE"
+          
+          echo "✅ Remote config saved to $OUT_FILE"
+
+      # ➕ Step 4: Remove event to allowed_event_keys
+      - name: ➕ Step 4 - Remove event(s) to list
+        id: remove_event
+        run: |
+          CONFIG_FILE=".remote_config.json"
+          PARAM_KEY="${{ github.event.inputs.target_tool }}"
+          RAW_EVENTS="${{ github.event.inputs.new_event_name }}"
+          UPDATED_FILE="updated_remote_config.json"
+          
+          chmod +x .github/action/remove-event-key.sh
+          
+          echo "🔍 Preparing to remove event(s) to $PARAM_KEY: $RAW_EVENTS"
+          
+          # Split by comma and trim each item
+          IFS=',' read -ra EVENTS <<< "$RAW_EVENTS"
+          
+          TEMP_FILE="$CONFIG_FILE"
+          
+          for event in "${EVENTS[@]}"; do
+            TRIMMED_EVENT="$(echo "$event" | xargs)" # trim whitespace
+          
+            echo "🔧 Adding event: '$TRIMMED_EVENT'"
+            .github/action/remove-event-key.sh "$TEMP_FILE" "$PARAM_KEY" "$TRIMMED_EVENT"
+          
+            # Update the input file for the next loop
+            TEMP_FILE="updated_$TEMP_FILE"
+          done
+          
+          #bump file version
+          BUMP_TEMP_FILE=$(mktemp)
+          jq ".parameters[\"$PARAM_KEY\"].defaultValue.value |=
+          (fromjson | .version += 1 | tojson)" "$TEMP_FILE" > "$BUMP_TEMP_FILE"
+          
+          mv "$BUMP_TEMP_FILE" "$UPDATED_FILE"
+          
+          echo "✅ All events processed. Output written to $UPDATED_FILE"
+
+      # 🛡️ Step 5 - Check JSON integrity before pushing update
+      - name: 🛡️ Step 5 - Check JSON integrity before pushing update
+        id: check_integrity
+        run: |
+          ORIGINAL_FILE=".remote_config.json"
+          UPDATED_FILE="updated_remote_config.json"
+          PARAM_KEY="${{inputs.target_tool}}"
+
+          chmod +x .github/action/check-json-integrity.sh
+
+          echo "🔍 Validating JSON integrity..."
+          .github/action/check-json-integrity.sh "$PARAM_KEY" "$ORIGINAL_FILE" "$UPDATED_FILE"
+
+          echo "✅ JSON integrity confirmed."
+
+      # 🚀 Step 6 - Push updated Remote Config to Firebase
+      - name: Step 6 - Push updated config to Firebase
+        if: ${{ steps.check_integrity.outcome == 'success' }}
+        run: |
+          PROJECT_ID="${FIREBASE_PROJECT_ID}"
+          CONFIG_FILE="updated_remote_config.json"
+          
+          chmod +x .github/action/put-remote-config.sh
+          echo "🚀 Sending updated config to Firebase..."
+          .github/action/put-remote-config.sh "${{ steps.get_token.outputs.token }}" "$PROJECT_ID" "$CONFIG_FILE"
