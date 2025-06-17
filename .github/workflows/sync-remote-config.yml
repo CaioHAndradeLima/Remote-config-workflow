@@ -101,7 +101,7 @@ jobs:
             fi
           done < <(echo "$allowed_keys" | jq -r '.[]')
           
-          conditional_values_exist=$(jq -e '.parameters.firebase.conditionalValues != null' .remote_config.json)
+          conditional_values_exist=$(jq '.parameters.firebase.conditionalValues != null' .remote_config.json)
   
           if [[ "$conditional_values_exist" == "true" ]]; then
   
