@@ -162,7 +162,7 @@ jobs:
           LOCAL_FILE="config/firebase.json"
           REMOTE_FILE=".remote_config.json"
 
-          LOCAL_VERSION=$(jq -r '.parameters.firebase.defaultValue.value | fromjson | .version' "$LOCAL_FILE")
+          LOCAL_VERSION=$(jq -r '.version' "$LOCAL_FILE")
           REMOTE_VERSION=$(jq -r '.parameters.firebase.defaultValue.value | fromjson | .version' "$REMOTE_FILE")
           echo "remote_version=$REMOTE_VERSION" >> $GITHUB_OUTPUT
 
@@ -172,7 +172,7 @@ jobs:
             cp "$REMOTE_FILE" "$LOCAL_FILE"
           elif (( REMOTE_VERSION == LOCAL_VERSION )); then
             echo "local_and_remote_equals=true" >> $GITHUB_OUTPUT
-            LOCAL_CONTENT=$(jq -r '.parameters.firebase.defaultValue.value | fromjson | del(.version)' "$LOCAL_FILE")
+            LOCAL_CONTENT=$(jq -c 'del(.version)' "$LOCAL_FILE")
             REMOTE_CONTENT=$(jq -r '.parameters.firebase.defaultValue.value | fromjson | del(.version)' "$REMOTE_FILE")
 
             if [[ "$LOCAL_CONTENT" != "$REMOTE_CONTENT" ]]; then
