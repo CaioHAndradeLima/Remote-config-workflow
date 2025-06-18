@@ -26,6 +26,8 @@ if [[ -n "$CONDITION_TO_IGNORE" ]]; then
   jq ".conditions |= map(select(.name != \"$CONDITION_TO_IGNORE\"))" "$TMP_UPDATED" > "${TMP_UPDATED}.tmp" && mv "${TMP_UPDATED}.tmp" "$TMP_UPDATED"
 fi
 
+cat "$TMP_ORIGINAL"
+cat "$TMP_UPDATED"
 # compare the files
 if diff -q "$TMP_ORIGINAL" "$TMP_UPDATED" > /dev/null; then
   #echo "✅ no changes found."
