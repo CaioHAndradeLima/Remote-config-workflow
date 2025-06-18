@@ -83,7 +83,7 @@ jobs:
             echo "❌ No value found in firebase.defaultValue.value"
             echo "has_firebase_violation=false" >> $GITHUB_OUTPUT
             echo "firebase_violation_message=No value found in firebase.defaultValue.value" >> $GITHUB_OUTPUT
-            exit 0
+            exit 1
           fi
           
           parsed=$(echo "$raw_json" | jq -R 'fromjson?')
@@ -92,7 +92,7 @@ jobs:
             echo "❌ Failed to parse firebase.defaultValue.value as JSON"
             echo "has_firebase_violation=false" >> $GITHUB_OUTPUT
             echo "firebase_violation_message=Failed to parse firebase.defaultValue.value as JSON" >> $GITHUB_OUTPUT
-            exit 0
+            exit 1
           fi
           
           allowed_keys=$(echo "$raw_json" | jq -R 'fromjson | .allowed_event_keys')
@@ -101,7 +101,7 @@ jobs:
             echo "❌ 'allowed_event_keys' field not found in firebase"
             echo "has_firebase_violation=false" >> $GITHUB_OUTPUT
             echo "firebase_violation_message=field allowed_event_keys not found in firebase" >> $GITHUB_OUTPUT
-            exit 0
+            exit 1
           fi
                     
           # Collect invalid keys
