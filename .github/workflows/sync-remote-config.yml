@@ -11,6 +11,8 @@ jobs:
 
     outputs:
       has_firebase_violation: ${{ steps.check_snake_case.outputs.has_firebase_violation }}
+      has_integrity_violation: ${{ steps.compare_configs.outputs.has_integrity_violation }}
+      integrity_violation_message: ${{ steps.compare_configs.outputs.integrity_violation_message }}
       firebase_violation_message: ${{ steps.check_snake_case.outputs.firebase_violation_message }}
       invalid_firebase_keys: ${{ steps.check_snake_case.outputs.invalid_firebase_keys }}
       overwriting_local_file: ${{ steps.compare_configs.outputs.overwriting_local_file }}
@@ -178,17 +180,17 @@ jobs:
             if [[ "$LOCAL_CONTENT" != "$REMOTE_CONTENT" ]]; then
               echo "error_version_not_updated_remotely=true" >> $GITHUB_OUTPUT
               echo "::error::Config version match but contents differ."
-              echo "has_firebase_violation=true" >> $GITHUB_OUTPUT
-              echo "firebase_violation_message=Version of remote and local are equals but content are different" >> $GITHUB_OUTPUT
+              echo "has_integrity_violation=true" >> $GITHUB_OUTPUT
+              echo "integrity_violation_message=Version of remote and local are equals but content are different" >> $GITHUB_OUTPUT
             fi
           elif (( REMOTE_VERSION < LOCAL_VERSION )); then
             echo "local_version_greater_than_remote=true" >> $GITHUB_OUTPUT
             echo "⚠️ Local version is newer than remote. we've made a rebase recently?"
-            echo "has_firebase_violation=true" >> $GITHUB_OUTPUT
-            echo "firebase_violation_message=Local version is newer than remote. we've made a rebase recently" >> $GITHUB_OUTPUT
+            echo "has_integrity_violation=true" >> $GITHUB_OUTPUT
+            echo "integrity_violation_message=Local version is newer than remote. we've made a rebase recently" >> $GITHUB_OUTPUT
           fi
 
-          if [[ "${{ outputs.has_firebase_violation }}" == "true" ]]; then
+          if [[ "${{ steps.compare_configs.outputs.has_integrity_violation }}" == "true" ]]; then
             exit 1
           else
             echo "✅ No violations found."
@@ -204,9 +206,12 @@ jobs:
           if [[ "${{ needs.sync-remote-config.outputs.has_firebase_violation }}" == "true" ]]; then
             echo "❌ Firebase allowed_event_keys has data integrity violation."
             echo "📃 Reason: ${{ needs.sync-remote-config.outputs.firebase_violation_message }}"
-            if [[ -n "${{ needs.sync-remote-config.outputs.invalid_firebase_keys }}" ]]; then
-              echo "🔑 Invalid keys: ${{ needs.sync-remote-config.outputs.invalid_firebase_keys }}"
-            fi
+            echo "🔑 Invalid keys: ${{ needs.sync-remote-config.outputs.invalid_firebase_keys }}"
+            echo "🚨 CI failed due to data integrity violation."
+            exit 1
+          elif [[ "${{ needs.sync-remote-config.outputs.has_integrity_violation }}" == "true" ]]; then
+            echo "❌ Firebase allowed_event_keys has data integrity violation."
+            echo "📃 Reason: ${{ needs.sync-remote-config.outputs.integrity_violation_message }}"
             echo "🚨 CI failed due to data integrity violation."
             exit 1
           elif [[ "${{ needs.sync-remote-config.outputs.overwriting_local_file }}" == "true" ]]; then
