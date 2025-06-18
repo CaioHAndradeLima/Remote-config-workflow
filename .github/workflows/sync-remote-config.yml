@@ -155,6 +155,7 @@ jobs:
             echo "has_firebase_violation=true" >> $GITHUB_OUTPUT
             echo "firebase_violation_message=Invalid keys found in allowed_event_keys (default or conditional)" >> $GITHUB_OUTPUT
             echo "invalid_firebase_keys=$(IFS=, ; echo "${invalid_keys[*]}")" >> $GITHUB_OUTPUT
+            exit 1
           fi
 
       - name: ⚙️ Compare local and remote versions
