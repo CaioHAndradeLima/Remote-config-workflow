@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 6,
   "allowed_event_keys": [
     "event_1",
     "event_3",
@@ -9,7 +9,6 @@
     "event_7",
     "event_10",
     "event_12",
-    "event_13",
-    "event_14"
+    "event_13"
   ]
 }

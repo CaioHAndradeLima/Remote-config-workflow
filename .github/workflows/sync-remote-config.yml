@@ -187,7 +187,7 @@ jobs:
             echo "local_version_greater_than_remote=true" >> $GITHUB_OUTPUT
             echo "⚠️ Local version is newer than remote. we made a rollback recently?"
             echo "has_integrity_violation=true" >> $GITHUB_OUTPUT
-            echo "integrity_violation_message=Local version is newer than remote. we've made a rollback recently" >> $GITHUB_OUTPUT
+            echo "integrity_violation_message=Local version is newer than remote. we made a rollback recently?" >> $GITHUB_OUTPUT
           fi
 
   report-violations:
