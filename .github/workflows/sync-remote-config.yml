@@ -212,9 +212,7 @@ jobs:
             echo "🚨 CI failed due to data integrity violation."
             exit 1
           elif [[ "${{ needs.sync-remote-config.outputs.overwriting_local_file }}" == "true" ]]; then
-            echo "✅ We updated the local file to version ${{ needs.sync-remote-config.outputs.remote_version }}."
+            echo "✅ We updated the local file to version to ${{ needs.sync-remote-config.outputs.remote_version }}."
           elif [[ "${{ needs.sync-remote-config.outputs.local_and_remote_equals }}" == "true" ]]; then
             echo "✅ The local file is already up to date."
-          else
-            echo "✅ No snake_case violations found."
           fi
