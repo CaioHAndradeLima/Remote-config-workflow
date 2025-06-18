@@ -9,6 +9,16 @@ jobs:
   sync-remote-config:
     runs-on: ubuntu-latest
 
+    outputs:
+      has_firebase_violation: ${{ steps.check_snake_case.outputs.has_firebase_violation }}
+      firebase_violation_message: ${{ steps.check_snake_case.outputs.firebase_violation_message }}
+      invalid_firebase_keys: ${{ steps.check_snake_case.outputs.invalid_firebase_keys }}
+      overwriting_local_file: ${{ steps.compare_configs.outputs.overwriting_local_file }}
+      error_version_not_updated_remotely: ${{ steps.compare_configs.outputs.error_version_not_updated_remotely }}
+      local_version_greater_than_remote: ${{ steps.compare_configs.outputs.local_version_greater_than_remote }}
+      local_and_remote_equals: ${{ steps.compare_configs.outputs.local_and_remote_equals }}
+      remote_version: ${{ steps.compare_configs.outputs.remote_version }}
+
     env:
       FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
       FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
@@ -19,7 +29,6 @@ jobs:
       - name: 📦 Checkout repository
         uses: actions/checkout@v4
 
-      # Step 1: Request token from Firebase
       # Step 1: Request token from Firebase
       - name: 🔐 Requesting Firebase token
         id: get_token
@@ -146,20 +155,64 @@ jobs:
             echo "invalid_firebase_keys=$(IFS=, ; echo "${invalid_keys[*]}")" >> $GITHUB_OUTPUT
           fi
 
-      # Step 4: Notify Slack if any problem occurs or if snake_case mismatch found
-      - name: 📢 Step 4 - Check for violations and print report
-        if: always()
+      - name: ⚙️ Compare local and remote versions
+        id: compare_configs
+        if: ${{ steps.check_snake_case.outputs.has_firebase_violation == 'false' }}
         run: |
-          echo "📊 Validating results from previous step..."
-          
+          LOCAL_FILE="config/firebase.json"
+          REMOTE_FILE=".remote_config.json"
+
+          LOCAL_VERSION=$(jq -r '.parameters.firebase.defaultValue.value | fromjson | .version' "$LOCAL_FILE")
+          REMOTE_VERSION=$(jq -r '.parameters.firebase.defaultValue.value | fromjson | .version' "$REMOTE_FILE")
+          echo "remote_version=$REMOTE_VERSION" >> $GITHUB_OUTPUT
+
+          if (( REMOTE_VERSION > LOCAL_VERSION )); then
+            echo "🚀 Remote version is newer. Overwriting local config."
+            echo "overwriting_local_file=true" >> $GITHUB_OUTPUT
+            cp "$REMOTE_FILE" "$LOCAL_FILE"
+          elif (( REMOTE_VERSION == LOCAL_VERSION )); then
+            echo "local_and_remote_equals=true" >> $GITHUB_OUTPUT
+            LOCAL_CONTENT=$(jq -r '.parameters.firebase.defaultValue.value | fromjson | del(.version)' "$LOCAL_FILE")
+            REMOTE_CONTENT=$(jq -r '.parameters.firebase.defaultValue.value | fromjson | del(.version)' "$REMOTE_FILE")
+
+            if [[ "$LOCAL_CONTENT" != "$REMOTE_CONTENT" ]]; then
+              echo "error_version_not_updated_remotely=true" >> $GITHUB_OUTPUT
+              echo "::error::Config version match but contents differ."
+              echo "has_firebase_violation=true" >> $GITHUB_OUTPUT
+              echo "firebase_violation_message=Version of remote and local are equals but content are different" >> $GITHUB_OUTPUT
+            fi
+          elif (( REMOTE_VERSION < LOCAL_VERSION )); then
+            echo "local_version_greater_than_remote=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Local version is newer than remote. we've made a rebase recently?"
+            echo "has_firebase_violation=true" >> $GITHUB_OUTPUT
+            echo "firebase_violation_message=Local version is newer than remote. we've made a rebase recently" >> $GITHUB_OUTPUT
+          fi
+
           if [[ "${{ steps.check_snake_case.outputs.has_firebase_violation }}" == "true" ]]; then
-            echo "❌ Firebase allowed_event_keys has invalid snake_case items."
-            echo "🪵 Reason: ${{ steps.check_snake_case.outputs.firebase_violation_message }}"
-            echo "🔑 Invalid keys: ${{ steps.check_snake_case.outputs.invalid_firebase_keys }}"
-          
-            echo ""
-            echo "🚨 CI FAILED due to snake_case violations in Firebase Remote Config"
             exit 1
+          else
+            echo "✅ No violations found."
+          fi
+  report-violations:
+    needs: sync-remote-config
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📆 Print check results
+        run: |
+          echo "📊 Summary from sync-remote-config job:"
+
+          if [[ "${{ needs.sync-remote-config.outputs.has_firebase_violation }}" == "true" ]]; then
+            echo "❌ Firebase allowed_event_keys has data integrity violation."
+            echo "📃 Reason: ${{ needs.sync-remote-config.outputs.firebase_violation_message }}"
+            if [[ -n "${{ needs.sync-remote-config.outputs.invalid_firebase_keys }}" ]]; then
+              echo "🔑 Invalid keys: ${{ needs.sync-remote-config.outputs.invalid_firebase_keys }}"
+            fi
+            echo "🚨 CI failed due to data integrity violation."
+            exit 1
+          elif [[ "${{ needs.sync-remote-config.outputs.overwriting_local_file }}" == "true" ]]; then
+            echo "✅ We updated the local file to version ${{ needs.sync-remote-config.outputs.remote_version }}."
+          elif [[ "${{ needs.sync-remote-config.outputs.local_and_remote_equals }}" == "true" ]]; then
+            echo "✅ The local file is already up to date."
           else
             echo "✅ No snake_case violations found."
           fi
