@@ -188,7 +188,7 @@ jobs:
             echo "firebase_violation_message=Local version is newer than remote. we've made a rebase recently" >> $GITHUB_OUTPUT
           fi
 
-          if [[ "${{ steps.check_snake_case.outputs.has_firebase_violation }}" == "true" ]]; then
+          if [[ "${{ outputs.has_firebase_violation }}" == "true" ]]; then
             exit 1
           else
             echo "✅ No violations found."
