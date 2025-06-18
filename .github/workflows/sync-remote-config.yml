@@ -185,19 +185,15 @@ jobs:
             fi
           elif (( REMOTE_VERSION < LOCAL_VERSION )); then
             echo "local_version_greater_than_remote=true" >> $GITHUB_OUTPUT
-            echo "⚠️ Local version is newer than remote. we've made a rebase recently?"
+            echo "⚠️ Local version is newer than remote. we made a rollback recently?"
             echo "has_integrity_violation=true" >> $GITHUB_OUTPUT
-            echo "integrity_violation_message=Local version is newer than remote. we've made a rebase recently" >> $GITHUB_OUTPUT
+            echo "integrity_violation_message=Local version is newer than remote. we've made a rollback recently" >> $GITHUB_OUTPUT
           fi
 
-          if [[ "${{ steps.compare_configs.outputs.has_integrity_violation }}" == "true" ]]; then
-            exit 1
-          else
-            echo "✅ No violations found."
-          fi
   report-violations:
     needs: sync-remote-config
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: 📆 Print check results
         run: |
