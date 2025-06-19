@@ -172,7 +172,7 @@ jobs:
           if (( REMOTE_VERSION > LOCAL_VERSION )); then
             echo "🚀 Remote version is newer. Overwriting local config."
             echo "overwriting_local_file=true" >> $GITHUB_OUTPUT
-            cp "$REMOTE_FILE" "$LOCAL_FILE"
+            jq -r '.parameters.firebase.defaultValue.value | fromjson' "$REMOTE_FILE" > "$LOCAL_FILE"
           elif (( REMOTE_VERSION == LOCAL_VERSION )); then
             echo "local_and_remote_equals=true" >> $GITHUB_OUTPUT
             LOCAL_CONTENT=$(jq -c 'del(.version)' "$LOCAL_FILE")
@@ -190,6 +190,14 @@ jobs:
             echo "has_integrity_violation=true" >> $GITHUB_OUTPUT
             echo "integrity_violation_message=Local version is newer than remote. we made a rollback recently?" >> $GITHUB_OUTPUT
           fi
+      - name: 🚀 Commit and Push updated config
+        if: steps.compare_configs.outputs.overwriting_local_file == 'true'
+        run: |
+          #git config user.name "github-actions[bot]"
+          #git config user.email "github-actions[bot]@users.noreply.github.com"
+          #git add config/firebase.json
+          #git commit -m "chore: update firebase config from remote"
+          #git push
 
   report-violations:
     needs: sync-remote-config
