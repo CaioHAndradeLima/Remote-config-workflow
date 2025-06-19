@@ -175,8 +175,8 @@ jobs:
             jq -r '.parameters.firebase.defaultValue.value | fromjson' "$REMOTE_FILE" > "$LOCAL_FILE"
           elif (( REMOTE_VERSION == LOCAL_VERSION )); then
             echo "local_and_remote_equals=true" >> $GITHUB_OUTPUT
-            LOCAL_CONTENT=$(jq -c 'del(.version)' "$LOCAL_FILE")
-            REMOTE_CONTENT=$(jq -r '.parameters.firebase.defaultValue.value | fromjson | del(.version)' "$REMOTE_FILE")
+            LOCAL_CONTENT=$(jq -c 'del(.version)' "$LOCAL_FILE" | tr -d '\n\r ')
+            REMOTE_CONTENT=$(jq -c '.parameters.firebase.defaultValue.value | fromjson | del(.version)' "$REMOTE_FILE" | tr -d '\n\r ')
 
             if [[ "$LOCAL_CONTENT" != "$REMOTE_CONTENT" ]]; then
               echo "error_version_not_updated_remotely=true" >> $GITHUB_OUTPUT
